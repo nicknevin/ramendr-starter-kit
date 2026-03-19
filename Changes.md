@@ -23,3 +23,4 @@ in prep to move to OCP 4.20 as the default.
 previously documented AWS secret instead of creating a new one with the same material).
 * When OCP 4.20+ support is ready, there will be a v1.1 branch to use it.
 * Externalize all charts to prep for subsequent demo pattern.
+* Pass values-egv-dr into edge-gitops-vms chart. It used to use a symlink when it was local.
