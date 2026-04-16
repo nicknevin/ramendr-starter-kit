@@ -151,7 +151,7 @@
         register: primary_nodes_raw
 
       - name: Build instance type list (primary)
-        set_fact:
+        ansible.builtin.set_fact:
           primary_worker_instance_types: "{{ primary_worker_instance_types | default([]) + [ item.metadata.labels['node.kubernetes.io/instance-type'] ] }}"
         loop: "{{ primary_nodes_raw.resources }}"
         loop_control:
@@ -160,7 +160,7 @@
               'node.kubernetes.io/instance-type' in item.metadata.labels
 
       - name: Make instance types unique (primary-cluster)
-        set_fact:
+        ansible.builtin.set_fact:
           primary_worker_instance_types: "{{ primary_worker_instance_types | unique }}"
 
       - name: Get secondary cluster node info
@@ -172,7 +172,7 @@
         register: secondary_nodes_raw
 
       - name: Build instance type list (secondary)
-        set_fact:
+        ansible.builtin.set_fact:
           secondary_worker_instance_types: "{{ secondary_worker_instance_types | default([]) + [ item.metadata.labels['node.kubernetes.io/instance-type'] ] }}"
         loop_control:
           label: "{{ item.metadata.name }}"
