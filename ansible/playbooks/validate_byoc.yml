@@ -9,45 +9,16 @@
         pattern_dir: "{{ playbook_dir }}/../../"
     - role: rhvp.cluster_utils.find_vp_secrets
   vars:
-    byoc_enabled: false
+    byoc_enabled: true
   tasks:
-    - name: Set fact for clustergroup name
-      ansible.builtin.set_fact:
-        clustergroup_name: "{{ values_global.main.clusterGroupName }}"
-
-    - name: Load values-{clustergroup_name}.yaml
-      ansible.builtin.set_fact:
-        values_clustergroup: "{{ lookup('file', pattern_dir + '/values-' + clustergroup_name + '.yaml') | from_yaml }}"
-
-    - name: Set fact for the rdr app
-      ansible.builtin.set_fact:
-        rdr_app: "{{ values_clustergroup.clusterGroup.applications.rdr }}"
-
-    - name: Load rdr values yaml
-      ansible.builtin.set_fact:
-        rdr_values: "{{ lookup('file', pattern_dir + rdr_app.path + '/values.yaml') | from_yaml }}"
-
-    - name: Set byoc for the playbook
-      ansible.builtin.set_fact:
-        byoc_enabled: true
-      when:
-        - ((rdr_app.overrides | default([]) | selectattr('name', 'eq', 'byoc')|first).value | default(false)) or (rdr_values.byoc)
-
-    - name: Set fact for secretStore backend
-      ansible.builtin.set_fact:
-        secrets_backing_store: "{{ values_global.global.secretStore.backend | default('vault') }}"
-      when: byoc_enabled
-
     - name: Parse secrets data
       no_log: "{{ hide_sensitive_output | default(true) }}"
       rhvp.cluster_utils.parse_secrets_info:
         values_secrets_plaintext: "{{ values_secrets_data }}"
-        secrets_backing_store: "{{ secrets_backing_store }}"
+        secrets_backing_store: "{{ secrets_backing_store | default('vault') }}"
       register: secrets_results
-      when: byoc_enabled
 
     - name: Check byoc if we need to
-      when: byoc_enabled
       block:
       - name: Set facts for dr clusters backend
         ansible.builtin.set_fact:
@@ -112,7 +83,6 @@
         ansible.builtin.assert:
           that:
             - hub_cluster_version is ansible.builtin.version("4.18", ">=")
-            - hub_cluster_version is ansible.builtin.version("4.20", "<=")
             - primary_cluster_version is ansible.builtin.version(hub_cluster_version)
             - secondary_cluster_version is ansible.builtin.version(hub_cluster_version)
           fail_msg: |
